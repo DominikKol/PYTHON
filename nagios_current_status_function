@@ -1,0 +1,36 @@
+def nagios_current_status(fname):
+	# status_type: 'none', 'hoststatus' or 'servicestatus'
+	current_status = 'none'
+	try:
+		with open(fname) as f:
+			for line in f:
+				line = line.strip()
+				if line.startswith('hostcurrent_status'):
+					current_status = 'hostcurrent_status'
+				if line.startswith('servicecurrent_status'):
+					current_status = 'servicecurrent_status'
+					
+				if current_status == 'hostcurrent_status':
+					if line.startswith('host_name='):
+						hostname = line.split('=')[1]
+					if line.startswith('current_state='):
+						current_state = line.split('=')[1]
+					if line == '}':
+						item = (hostname, '', current_state)
+						yield item
+						current_status = 'none'
+
+				if current_status == 'servicecurrent_status':
+					if line.startswith('host_name='):
+						hostname = line.split('=')[1]
+					if line.startswith('service_description='):
+						service_description = line.split('=')[1]
+					if line.startswith('current_state='):
+						current_state = line.split('=')[1]
+					if line == '}':
+						item = (hostname, service_description, current_state)
+						yield item
+						current_status = 'none'
+	except Exception, e:
+		print 'Exception!'
+		yield ()

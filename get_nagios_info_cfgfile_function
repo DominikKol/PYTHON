@@ -1,0 +1,40 @@
+def nagios_info():
+	status_host = ''
+	hostname = ''
+	alias = ''
+	displayname = ''
+	parent = ''
+	address = ''
+	cfgfiles = ['/etc/nagios/objects/othercfgfile.cfg','/etc/nagios/objects/cfgfile.cfg']
+	for cfgfile in cfgfiles:
+		try:
+			with open(cfgfile) as f:
+				for rawline in f:
+					line = rawline.strip()
+					
+					if line.startswith('define host'):
+						status_host = 'hostdef'
+						
+					if status_host == 'hostdef':
+						if line.startswith('host_name'):
+							hostname = line.split()[1]
+						if line.startswith('alias'):
+							alias = line.split()[1]
+						if line.startswith('display_name'):
+							displayname = line.split()[1]
+						if line.startswith('parents'):
+							parent = line.split()[1]
+						if line.startswith('address'):
+							address = line.split()[1]
+						if line == '}':
+							item = (hostname,address,alias,displayname,parent)
+							yield item
+							status_host = ''
+							hostname = ''
+							alias = ''
+							displayname = ''
+							parent = ''
+							address = ''
+		except Exception, e:
+			print 'Exception!' + str(e)
+			yield ()
